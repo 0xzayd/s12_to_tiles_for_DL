@@ -12,7 +12,9 @@ from src.Processor import Processor
 import numpy as np
 import multiprocessing
 from multiprocessing import Pool
-import boto3
+
+ACCESS_KEY = ''
+SECRET_KEY = ''
 
 logger = logging.getLogger('S1ProcessorLogger')
 logging.basicConfig(level=logging.INFO)
@@ -37,10 +39,8 @@ class S1Processor(Processor):
                     f.extractall('.')
             else:
                 logger.info('Must download S3 file from S3 Bucket...')
-                ACCESS_KEY = '################'
-                SECRET_KEY = '###################################'
                 s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
-                s3.download_file(demfiles, 'Mosaic_W_EUR.zip', 'Mosaic_W_EUR.zip')
+                s3.download_file('demfiles', 'Mosaic_W_EUR.zip', 'Mosaic_W_EUR.zip')
                 with zipfile.ZipFile('./Mosaic_W_EUR.zip', 'r') as f:
                     f.extractall('.')
     

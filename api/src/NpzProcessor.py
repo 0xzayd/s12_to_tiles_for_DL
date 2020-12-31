@@ -4,6 +4,11 @@ from multiprocessing import Pool
 import glob
 import os
 from functools import partial
+import shutil
+import boto3
+
+ACCESS_KEY = 'XXXXXXXXXXXXXXXXXXXXX'
+SECRET_KEY = 'XXXXXXXXXXXXXXXXXXXXX'
 
 class NpzProcessor(object):
     def __init__(self, output_folder, output_city_folder):
@@ -60,9 +65,21 @@ class NpzProcessor(object):
         p.map(remove_bad_tiles, npz_files)
         p.close()
 
+    def compress(self):
+        self.archive_name = splitName(self.output_city_folder)
+        shutil.make_archive(archive_name, 'zip', self.output_city_folder)
 
+    def upload(self):
+
+        s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY,
+                      aws_secret_access_key=SECRET_KEY)
+
+        s3.upload_file(self.archive_name + '.zip', 'sen12munich', self.archive_name)
+        print("Upload Successful")
 
     def process(self):
         self.stack()
         self.make_tiles()
         self.check_tiles()
+        self.compress()
+        self.upload()
