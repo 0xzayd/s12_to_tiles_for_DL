@@ -1,0 +1,21 @@
+# S1, S2 Data Query Configuration 
+
+OUTPUT_FOLDER: 'output_data' # will contain downloaded and processed files
+FOOTPRINT: 'paris.geojson' # should contain the footprint of the AOI
+OAH_CREDS: 'OAH_creds.json' #should contain the Copernicus Open Access Hub login credentials
+OUTPUT_NPZ: 'output_npz'
+
+min_coverage: 0.99 # minimum percentage of the area of interest that MUST be covered
+
+S2:
+  mincloudcover: 0
+  maxcloudcover: 1
+  processinglevel: 'Level-1C'
+
+S1:
+  producttype: 'GRD'
+  
+DATE:
+  min_date: "20200101"
+  max_date: "20201112"
+  ts_interval: 30 #in days 
