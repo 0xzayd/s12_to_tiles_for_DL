@@ -48,8 +48,8 @@ class NpzProcessor(object):
             if not os.path.exists(tiles_s2):
                 os.mkdir(tiles_s2)
 
-            extract_subs_npz(s1_, tiles_s1, 72, 36)
-            extract_subs_npz(stacked, tiles_s2, 72, 36)
+            extract_subs_npz(s1_, tiles_s1, 512, 256)
+            extract_subs_npz(stacked, tiles_s2, 512, 256)
 
         
     def check_tiles(self):
