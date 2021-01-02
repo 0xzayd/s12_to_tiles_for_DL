@@ -12,8 +12,8 @@ from src.Processor import Processor
 import numpy as np
 import boto3
 
-ACCESS_KEY = 'AKIA5VBRPVJATOKSVN6M'
-SECRET_KEY = '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'
+ACCESS_KEY = ''
+SECRET_KEY = ''  #old ones not working anyways
 
 logger = logging.getLogger('S1ProcessorLogger')
 logging.basicConfig(level=logging.INFO)
