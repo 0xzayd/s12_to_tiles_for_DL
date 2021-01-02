@@ -14,7 +14,7 @@ class NpzProcessor(object):
     def __init__(self, output_folder, output_city_folder):
         self.output_folder = output_folder
         self.output_city_folder = output_city_folder
-        self.cpus = max(multiprocessing.cpu_count()-2,1)
+        self.cpus = max(multiprocessing.cpu_count()-1,1)
         
 
     def stack(self):
