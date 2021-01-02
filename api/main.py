@@ -62,13 +62,16 @@ def main():
     s1_proc.process() # the "process" method runs the complete workflow: raster processing, clipping, mosaicking, readings and writings... 
                       # but of course each step can be executed individually e.g. s1_proc.unzip() or s2_proc.clip_all_to_aoi()  etc. 
 
+    
+    
     s2_proc = S2Processor(s2_folders[i], mosaicker.footprint)
     s2_proc.process()
+
 
     # Discrepancy between S1 and S2 extents require further post-processing
     # following step has until now always cured it
     s1_ = glob.glob(os.path.join(s2_folders[i],'../*S1.tif'))[0]
-    s2_ = glob.glob(os.path.join(s2_folders[i],'../blue*S2.tif'))[0]
+    s2_ = glob.glob(os.path.join(s2_folders[i],'../*blue*S2.tif'))[0]
 
     post_proc(s1_, s2_)
 
@@ -76,5 +79,7 @@ def main():
   npz_proc = NpzProcessor(mosaicker.output_folder, mosaicker.output_npz)
   npz_proc.process()
 
+
 if __name__ == "__main__":
     main()
+

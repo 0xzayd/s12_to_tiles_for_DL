@@ -4,8 +4,10 @@ numpy
 pandas
 geopandas
 PyYaml
-glob3
+glob2
 shapely
 rasterio
 scipy
 scikit-learn
+boto3
+pathos

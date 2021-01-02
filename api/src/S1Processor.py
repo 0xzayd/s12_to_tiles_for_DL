@@ -10,11 +10,10 @@ import logging
 import glob
 from src.Processor import Processor
 import numpy as np
-import multiprocessing
-from multiprocessing import Pool
+import boto3
 
-ACCESS_KEY = ''
-SECRET_KEY = ''
+ACCESS_KEY = 'AKIA5VBRPVJATOKSVN6M'
+SECRET_KEY = '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'
 
 logger = logging.getLogger('S1ProcessorLogger')
 logging.basicConfig(level=logging.INFO)
@@ -180,11 +179,18 @@ class S1Processor(Processor):
                 tercorrected = self.subset(tercorrected)
 
             scaled_db = self.scale_db(tercorrected)
-
+            
+            print('writing')
             output_path = os.path.join(self.zips_path, self.basenames[i]) + '_VV_VH_dB.tif'
             ProductIO.writeProduct(scaled_db, output_path, 'GeoTIFF-BigTIFF')
+            print('finished writing')
             scene.dispose()
             scene.closeIO()
-            self.paths_to_merge.append(output_path)
+            #self.paths_to_merge.append(output_path)
 
+        logger.info('merging now S1 scenes')
+        self.paths_to_merge = glob.glob(os.path.join(self.zips_path, '*.tif'))
         self.merge()
+        logger.info('Done merging S1')
+
+

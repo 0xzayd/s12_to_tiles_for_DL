@@ -9,6 +9,8 @@ import shapely.wkt
 import rasterio
 from src.utils import clip_to_aoi
 from src.Processor import Processor
+import multiprocessing
+from pathos.multiprocessing import ProcessingPool as Pool
 
 logger = logging.getLogger('S2ProcessorLogger')
 logging.basicConfig(level=logging.INFO)
@@ -61,11 +63,15 @@ class S2Processor(Processor):
         clip_partial = functools.partial(clip_to_aoi, footprint=self.footprint)
         clip_lambda = lambda x: dict(zip(x.keys(), map(clip_partial, x.values())))
 
-        self.paths_to_merge = [clip_lambda(jp2_paths) for jp2_paths in self.jp2_paths]
-    
+        p = Pool(max(multiprocessing.cpu_count()-1,1))
+        self.paths_to_merge = p.map(clip_lambda, [jp2_paths for jp2_paths in self.jp2_paths])
+   
     def process(self):
+        logger.info('unzipping files')
         self.unzip_files()
         self.get_jp2_paths()
         self.clip_all_to_aoi()
+        logger.info('merging')
         self.merge()
-  
+        logger.info('Done merging S2')
+
