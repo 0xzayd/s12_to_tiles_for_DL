@@ -18,8 +18,8 @@ RUN ./esa-snap_sentinel_unix_7_0.sh -q
 # link gpt so it can be used systemwide
 RUN ln -s /usr/local/snap/bin/gpt /usr/bin/gpt
 
-# set gpt max memory to 16GB
-RUN sed -i -e 's/-Xmx1G/-Xmx16G/g' /usr/local/snap/bin/gpt.vmoptions
+# set gpt max memory to 128GB
+RUN sed -i -e 's/-Xmx1G/-Xmx128G/g' /usr/local/snap/bin/gpt.vmoptions
 
 # install jdk and python3 with required modules
 RUN apt-get -y install default-jdk python python-pip git maven python-jpy
