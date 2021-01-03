@@ -86,7 +86,7 @@ class S1Processor(Processor):
             footprint = self.footprint
             output_path = os.path.join(self.zips_path, self.basenames[i]) + '_VV_VH_dB.tif'
 
-            subprocess.call(['python', 'subp.py', pol, polarization, footprint, output_path])
+            subprocess.call(['python', 'src/subp.py', pol, polarization, footprint, output_path])
             
 
         logger.info('merging now S1 scenes')
