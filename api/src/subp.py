@@ -4,11 +4,15 @@ from snappy import ProductIO
 from snappy import HashMap
 from snappy import GPF
 
-pol = sys.argv[1]
-polarization = sys.argv[2]
-footprint = sys.argv[3]
-output_path = sys.argv[4]
+safe_folder = [1]
+pol = sys.argv[2]
+polarization = sys.argv[3]
+footprint = sys.argv[4]
+output_path = sys.argv[5]
 
+
+logger = logging.getLogger('S1Sub')
+logging.basicConfig(level=logging.INFO)
 
 def apply_orbit_file(source):
     logger.info('\tApplying orbit file')
@@ -84,7 +88,7 @@ def scale_db(source):
     return output
 
 
-def main(pol, polarization, footprint, output_path):
+def main(safe_folder, pol, polarization, footprint, output_path):
     scene = ProductIO.readProduct(safe_folder + '/manifest.safe')   
     applyorbit = apply_orbit_file(scene)
     thermaremoved = remove_thermal_noise(applyorbit)
@@ -93,7 +97,7 @@ def main(pol, polarization, footprint, output_path):
 
     # subset here
     if footprint:
-        tercorrected = subset(tercorrected)
+        tercorrected = subset(tercorrected, footprint)
 
     scaled_db = scale_db(tercorrected)
     
@@ -104,4 +108,4 @@ def main(pol, polarization, footprint, output_path):
     scene.closeIO()
 
 
-main(pol, polarization, footprint, output_path)
+main(safe_folder, pol, polarization, footprint, output_path)
