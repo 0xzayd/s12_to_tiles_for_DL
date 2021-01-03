@@ -3,8 +3,9 @@ import sys
 from snappy import ProductIO
 from snappy import HashMap
 from snappy import GPF
+import logging
 
-safe_folder = [1]
+safe_folder = sys.argv[1]
 pol = sys.argv[2]
 polarization = sys.argv[3]
 footprint = sys.argv[4]
