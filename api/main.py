@@ -68,14 +68,23 @@ def main():
     s2_proc.process()
 
 
-    # Discrepancy between S1 and S2 extents require further post-processing
-    # following step has until now always cured it
-    s1_ = glob.glob(os.path.join(s2_folders[i],'../*S1.tif'))[0]
-    s2_ = glob.glob(os.path.join(s2_folders[i],'../*blue*S2.tif'))[0]
 
-    post_proc(s1_, s2_)
+  # Discrepancy between S1 and S2 extents require further post-processing
+  # following step has until now always cured it
+  logger.info('postprocessing extents...'):
 
-  
+  ts_folders = glob.glob(mosaicker.output_folder + '/*/')
+  ref_s2 = glob.glob(ts_folders[0] + '*blue*S2.tif')[0]
+  ref_s1 = glob.glob(ts_folders[0] + '*S1.tif')[0]
+  post_proc(ref_s2, ref_s1, s2s1=True)
+
+  for ts_folder[1:] in ts_folders:
+    stacked_tif = glob.glob(ts_folder + 'stacked.tif')[0]
+    s1_tif = glob.glob(ts_folder + '*S1.tif')[0]
+    post_proc(ref_s2, stacked_tif)
+    post_proc(ref_s2, s1_tif, s2s1=True)
+
+  logger.info('processing .npz files...')
   npz_proc = NpzProcessor(mosaicker.output_folder, mosaicker.output_npz)
   npz_proc.process()
 

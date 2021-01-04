@@ -6,6 +6,7 @@ from sentinelsat import SentinelAPI, read_geojson, geojson_to_wkt
 from datetime import date
 import datetime
 import pandas as pd
+import tqdm
 
 import json
 import yaml
@@ -24,7 +25,7 @@ import rasterio
 from rasterio.warp import reproject, calculate_default_transform as cdt, Resampling
 
 import multiprocessing
-from multiprocessing import Pool
+from pathos.multiprocessing import ProcessingPool as Pool
 import os
 from functools import partial
 
@@ -35,6 +36,11 @@ from sklearn.preprocessing import MinMaxScaler
 
 def splitName(x):
     return os.path.splitext(os.path.basename(x))[0]
+
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
 def authenticate_oah(creds_json):
     """
@@ -197,7 +203,10 @@ def clip_to_aoi(path_jp2, footprint):
         )
     output_path = path_jp2[:-4] + '_clipped.tif'
     with rasterio.open(output_path, 'w', **out_meta) as dst:
-        dst.write(rect.astype(np.uint16))      
+        dst.write(rect.astype(np.uint16))    
+
+    print('finished writing {0}'.format(output_path))
+  
     return output_path
 
 
@@ -255,19 +264,23 @@ def ConvertRaster2LatLong(InputRasterFile,OutputRasterFile):
                     dst_crs=Output_CRS,
                     resampling=Resampling.bilinear) 
 
-def post_proc(s1_path, s2_path):
+def post_proc(s2_path, rec_path, s2s1):
     s2_r = rasterio.open(s2_path)
     
     s2_meta = s2_r.meta.copy()
-    s2_meta.update({'count': 2,
+    if s2s1:
+        s2_meta.update({'count': 2,
                'dtype': 'float32'})
+    else:
+        s2_meta.update({'count': 4})
+
     s2_r.close()
 
-    s1_r = rasterio.open(s1_path)
+    s1_r = rasterio.open(rec_path)
     s1_ar = s1_r.read()
     s1_r.close()
 
-    with rasterio.open(s1_path, 'w', **s2_meta) as ff:
+    with rasterio.open(rec_path, 'w', **s2_meta) as ff:
         ff.write(s1_ar)
     return
 
@@ -349,11 +362,21 @@ def extract_subs_npz(path, save_folder, crop_sz=256, step=128, thres_sz=48):
     
     xyi = [x + (i, ) for i, x in enumerate([(x, x + crop_sz, y, y + crop_sz) for x in h_space for y in w_space])]
     
-    cpus = multiprocessing.cpu_count()
-    cpus = max(1, cpus-2)
-    
-    p = Pool(cpus)
-    p.map(proc_tile, xyi)
+    # let's try it like this, if it fails, just loop
+    try:    
+        cpus = multiprocessing.cpu_count()
+        cpus = max(1, cpus-2)
+        p = Pool(cpus)
+        #p.map(proc_tile, xyi)
+        for i, subxyi in enumerate(tqdm.tqdm(chunks(xyi, cpus))):
+            print('processing {0} chunks of 5000 tile'.format(i+1))
+            p.map(proc_tile, subxyi)
+        p.close()
+        p.join()
+
+    except OverflowError as error:
+    for x_y_i in tqdm.tqdm(xyi):
+        proc_tile(x_y_i)
     
     
     return 'Finished {0}'.format(splitName(path))
@@ -381,3 +404,9 @@ def stack_rgbnir(x):
     
     with rasterio.open(path + '/stacked.tif', 'w', **meta) as ll:
         ll.write(out)
+
+def zipdir(path, ziph):
+    # ziph is zipfile handle
+    for root, dirs, files in os.walk(path):
+        for filee in files:
+            ziph.write(os.path.join(root, filee))

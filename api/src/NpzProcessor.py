@@ -1,11 +1,12 @@
-from src.utils import stack_rgbnir, _remove_bad_tiles, process_tile, extract_subs_npz, splitName
+from src.utils import stack_rgbnir, _remove_bad_tiles, process_tile, extract_subs_npz, splitName, chunks, zipdir
 import multiprocessing
 from multiprocessing import Pool
 import glob
 import os
 from functools import partial
-import shutil
+import zipfile
 import boto3
+import tqdm
 
 ACCESS_KEY = 'XXXXXXXXXXXXXXXXXXXXX'
 SECRET_KEY = 'XXXXXXXXXXXXXXXXXXXXX'
@@ -24,6 +25,8 @@ class NpzProcessor(object):
 
         p = Pool(self.cpus)
         p.map(stack_rgbnir, paths_to_bands)
+        p.close()
+        p.join()
 
 
     def make_tiles(self):
@@ -61,13 +64,26 @@ class NpzProcessor(object):
 
         remove_bad_tiles = partial(_remove_bad_tiles, s_folders=s_folders)
 
-        p = Pool(self.cpus)
-        p.map(remove_bad_tiles, npz_files)
-        p.close()
+        # sadly too big to be multiprocessed by py2.7
+        # let's try it first and if it fails, just loop :(
+        try:    
+            p = Pool(self.cpus)
+            for i, subnpzfiles in enumerate(tqdm.tqdm(chunks(npz_files, self.cpus))):
+                print('checking {0} chunks of 5000 tile'.format(i+1))
+                p.map(remove_bad_tiles, subnpzfiles)
+            p.close()
+            p.join()
+        except OverflowError as error:
+            for npz_file in tqdm.tqdm(npz_files):
+                remove_bad_tiles(npz_file)
 
     def compress(self):
         self.archive_name = splitName(self.output_city_folder)
-        shutil.make_archive(archive_name, 'zip', self.output_city_folder)
+        #shutil.make_archive(archive_name, 'zip', self.output_city_folder) not gonna do it for large files
+        zipf = zipfile.ZipFile(self.archive_name + '.zip', 'w', allowZip64=True)
+        zipdir(self.output_city_folder, zipf)
+        zipf.close()
+
 
     def upload(self):
 
@@ -78,8 +94,38 @@ class NpzProcessor(object):
         print("Upload Successful")
 
     def process(self):
+    	print('stacking')
         self.stack()
+    	print('making tiles ...')
         self.make_tiles()
+    	print('checking tiles...')
         self.check_tiles()
+    	print('compressing....')
         self.compress()
+    	print('uploading...')
         self.upload()
+
+#must be useless after post_proc
+#subfolders = glob.glob('*')
+#list_1 = [splitName(r) for r in glob.glob(subfolders[0] + '/S1/*.npz')]
+#list_2 = [splitName(r) for r in glob.glob(subfolders[1] + '/S1/*.npz')]
+
+#diff1 = set(list_1)-set(list_2)
+#diff2 = set(list_2)-set(list_1)
+#diff = list(diff1)+list(diff2)
+
+#for e in diff:
+#    p1 = subfolders[0] + '/S1/' + e + '.npz'
+#    p2 = subfolders[0] + '/S2/' + e + '.npz'
+#    p3 = subfolders[1] + '/S1/' + e + '.npz'
+#    p4 = subfolders[1] + '/S2/' + e + '.npz'
+
+#    if os.path.exists(p1):
+#        os.remove(p1)
+#    if os.path.exists(p2):
+#        os.remove(p2)
+#    if os.path.exists(p3):
+#        os.remove(p3)
+#    if os.path.exists(p4):
+#        os.remove(p4)
+
