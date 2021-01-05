@@ -374,10 +374,11 @@ def extract_subs_npz(path, save_folder, crop_sz=256, step=128, thres_sz=48):
             p.map(proc_tile, subxyi)
         p.close()
         p.join()
-
-    except OverflowError as error:
-    for x_y_i in tqdm.tqdm(xyi):
-        proc_tile(x_y_i)
+    
+    except:
+    #except OverflowError as error:
+        for x_y_i in tqdm.tqdm(xyi):
+            proc_tile(x_y_i)
     
     
     return 'Finished {0}'.format(splitName(path))
@@ -387,6 +388,7 @@ def _remove_bad_tiles(path, s_folders):
     if is_nan(path):
         for s_folder in s_folders:
             if os.path.exists(os.path.join(s_folder, splitName(path) + '.npz')):
+                print('deleteing {0}'.format(splitName(path) + '.npz'))
                 os.remove(os.path.join(s_folder, splitName(path) + '.npz'))
 
 def stack_rgbnir(x):

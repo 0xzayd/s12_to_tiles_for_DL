@@ -1,4 +1,4 @@
-from src.utils import stack_rgbnir, _remove_bad_tiles, process_tile, extract_subs_npz, splitName, chunks, zipdir
+from src.utils import _remove_bad_tiles, process_tile, extract_subs_npz, splitName, chunks, zipdir
 import multiprocessing
 from pathos.multiprocessing import ProcessingPool as Pool
 import glob
@@ -16,17 +16,6 @@ class NpzProcessor(object):
         self.output_folder = output_folder
         self.output_city_folder = output_city_folder
         self.cpus = max(multiprocessing.cpu_count()-1,1)
-        
-
-    def stack(self):
-        paths_to_bands = [(glob.glob(folder + '/*red*S2.tif')[0],glob.glob(folder + '/*green*S2.tif')[0],
-                glob.glob(folder + '/*blue*S2.tif')[0],
-                glob.glob(folder + '/*nir*S2.tif')[0]) for folder in glob.glob(self.output_folder + '/*')]
-
-        p = Pool(self.cpus)
-        p.map(stack_rgbnir, paths_to_bands)
-        p.close()
-        p.join()
 
 
     def make_tiles(self):
@@ -90,12 +79,10 @@ class NpzProcessor(object):
         s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY,
                       aws_secret_access_key=SECRET_KEY)
 
-        s3.upload_file(self.archive_name + '.zip', 'sen12munich', self.archive_name)
+        s3.upload_file(self.archive_name + '.zip', 'sen12munich', self.archive_name+'.zip')
         print("Upload Successful")
 
     def process(self):
-    	print('stacking')
-        self.stack()
     	print('making tiles ...')
         self.make_tiles()
     	print('checking tiles...')

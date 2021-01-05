@@ -66,23 +66,23 @@ def main():
 
     
     
-    s2_proc = S2Processor(s2_folders[i], mosaicker.footprint)
+    s2_proc = S2Processor(s2_folders[i], mosaicker.footprint,mosaicker.output_folder, mosaicker.output_npz)
     s2_proc.process()
 
 
 
   # Discrepancy between S1 and S2 extents require further post-processing
   # following step has until now always cured it
-  logger.info('postprocessing extents...'):
+  logger.info('postprocessing extents...')
 
   ts_folders = glob.glob(mosaicker.output_folder + '/*/')
-  if len(ts_folder) > 0:
+  if len(ts_folders) > 0:
   
     ref_s2 = glob.glob(ts_folders[0] + '*blue*S2.tif')[0]
     ref_s1 = glob.glob(ts_folders[0] + '*S1.tif')[0]
-    post_proc((ref_s2, ref_s1, s2s1=True))
+    post_proc((ref_s2, ref_s1, True))
 
-    stacked_tif = [(ref_s2, glob.glob(ts_folder + 'stacked.tif')[0]) for ts_folder in ts_folders[1:]]
+    stacked_tif = [(ref_s2, glob.glob(ts_folder + 'stacked.tif')[0], False) for ts_folder in ts_folders[1:]]
     s1_tif = [(ref_s2, glob.glob(ts_folder + '*S1.tif')[0],True) for ts_folder in ts_folders[1:]]
     
     p = Pool(max(multiprocessing.cpu_count()-1,1))

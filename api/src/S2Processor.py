@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import shapely.wkt
 import rasterio
-from src.utils import clip_to_aoi
+from src.utils import stack_rgbnir, clip_to_aoi
 from src.Processor import Processor
 import multiprocessing
 from pathos.multiprocessing import ProcessingPool as Pool
@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 class S2Processor(Processor):
     def __init__(self, path_S2, footprint):
-        super(S2Processor, self).__init__(path_S2, footprint)
+        super(S2Processor, self).__init__(path_S2, footprint, output_folder, output_city_folder)
         logger.info('Instanciating S2 processor for S2 files in {0}'.format(self.zips_path))
         
         self.suffix = 'S2'
@@ -27,6 +27,9 @@ class S2Processor(Processor):
         self.unzip_folders = []
         self.jp2_paths = []
         self.footprint = footprint
+        self.output_folder = output_folder
+        self.output_city_folder = output_city_folder
+
     
     def unzip_files(self):
         for zip_file in self.zip_files:
@@ -58,6 +61,15 @@ class S2Processor(Processor):
                     
             self.jp2_paths.append({'red':red, 'green':green, 'blue':blue, 'nir':nir, 'tci':tci})
 
+    def stack(self):
+        paths_to_bands = [(glob.glob(folder + '/*red*S2.tif')[0],glob.glob(folder + '/*green*S2.tif')[0],
+                glob.glob(folder + '/*blue*S2.tif')[0],
+                glob.glob(folder + '/*nir*S2.tif')[0]) for folder in glob.glob(self.output_folder + '/*')]
+
+        p = Pool(max(multiprocessing.cpu_count()-2,1))
+        p.map(stack_rgbnir, paths_to_bands)
+        #p.close()
+        #p.join()
 
     def clip_all_to_aoi(self):
         clip_partial = functools.partial(clip_to_aoi, footprint=self.footprint)
@@ -74,4 +86,6 @@ class S2Processor(Processor):
         logger.info('merging')
         self.merge()
         logger.info('Done merging S2')
+        logger.info('stacking...')
+        self.stack()
 
