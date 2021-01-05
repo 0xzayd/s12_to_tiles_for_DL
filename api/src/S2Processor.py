@@ -16,7 +16,7 @@ logger = logging.getLogger('S2ProcessorLogger')
 logging.basicConfig(level=logging.INFO)
 
 class S2Processor(Processor):
-    def __init__(self, path_S2, footprint):
+    def __init__(self, path_S2, footprint, output_folder, output_city_folder):
         super(S2Processor, self).__init__(path_S2, footprint, output_folder, output_city_folder)
         logger.info('Instanciating S2 processor for S2 files in {0}'.format(self.zips_path))
         

@@ -78,7 +78,7 @@ def main():
   ts_folders = glob.glob(mosaicker.output_folder + '/*/')
   if len(ts_folders) > 0:
   
-    ref_s2 = glob.glob(ts_folders[0] + '*blue*S2.tif')[0]
+    ref_s2 = glob.glob(ts_folders[0] + 'stacked.tif')[0]
     ref_s1 = glob.glob(ts_folders[0] + '*S1.tif')[0]
     post_proc((ref_s2, ref_s1, True))
 
