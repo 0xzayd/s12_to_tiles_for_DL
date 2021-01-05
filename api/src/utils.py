@@ -264,7 +264,8 @@ def ConvertRaster2LatLong(InputRasterFile,OutputRasterFile):
                     dst_crs=Output_CRS,
                     resampling=Resampling.bilinear) 
 
-def post_proc(s2_path, rec_path, s2s1):
+def post_proc(X):
+    s2_path, rec_path, s2s1 = X
     s2_r = rasterio.open(s2_path)
     
     s2_meta = s2_r.meta.copy()

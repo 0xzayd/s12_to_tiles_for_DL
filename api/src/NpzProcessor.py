@@ -1,6 +1,6 @@
 from src.utils import stack_rgbnir, _remove_bad_tiles, process_tile, extract_subs_npz, splitName, chunks, zipdir
 import multiprocessing
-from multiprocessing import Pool
+from pathos.multiprocessing import ProcessingPool as Pool
 import glob
 import os
 from functools import partial

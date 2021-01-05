@@ -26,6 +26,8 @@ from src.S1Processor import S1Processor
 from src.S2Processor import S2Processor
 from src.utils import post_proc
 from src.NpzProcessor import NpzProcessor
+import multiprocessing
+from pathos.multiprocessing import ProcessingPool as Pool
 
 logger = logging.getLogger('MainLogger')
 logging.basicConfig(level=logging.INFO)
@@ -74,19 +76,30 @@ def main():
   logger.info('postprocessing extents...'):
 
   ts_folders = glob.glob(mosaicker.output_folder + '/*/')
-  ref_s2 = glob.glob(ts_folders[0] + '*blue*S2.tif')[0]
-  ref_s1 = glob.glob(ts_folders[0] + '*S1.tif')[0]
-  post_proc(ref_s2, ref_s1, s2s1=True)
+  if len(ts_folder) > 0:
+  
+    ref_s2 = glob.glob(ts_folders[0] + '*blue*S2.tif')[0]
+    ref_s1 = glob.glob(ts_folders[0] + '*S1.tif')[0]
+    post_proc((ref_s2, ref_s1, s2s1=True))
 
-  for ts_folder[1:] in ts_folders:
-    stacked_tif = glob.glob(ts_folder + 'stacked.tif')[0]
-    s1_tif = glob.glob(ts_folder + '*S1.tif')[0]
-    post_proc(ref_s2, stacked_tif)
-    post_proc(ref_s2, s1_tif, s2s1=True)
+    stacked_tif = [(ref_s2, glob.glob(ts_folder + 'stacked.tif')[0]) for ts_folder in ts_folders[1:]]
+    s1_tif = [(ref_s2, glob.glob(ts_folder + '*S1.tif')[0],True) for ts_folder in ts_folders[1:]]
+    
+    p = Pool(max(multiprocessing.cpu_count()-1,1))
+    p.map(post_proc, stacked_tif)
+    p.map(post_proc, s1_tif)
+    p.close()
+    p.join()
 
-  logger.info('processing .npz files...')
-  npz_proc = NpzProcessor(mosaicker.output_folder, mosaicker.output_npz)
-  npz_proc.process()
+    #for ts_folder[1:] in ts_folders:
+    #  stacked_tif = glob.glob(ts_folder + 'stacked.tif')[0]
+    #  s1_tif = glob.glob(ts_folder + '*S1.tif')[0]
+    #  post_proc(ref_s2, stacked_tif)
+    #  post_proc(ref_s2, s1_tif, s2s1=True)
+
+    logger.info('processing .npz files...')
+    npz_proc = NpzProcessor(mosaicker.output_folder, mosaicker.output_npz)
+    npz_proc.process()
 
 
 if __name__ == "__main__":
