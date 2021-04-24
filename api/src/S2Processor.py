@@ -62,12 +62,14 @@ class S2Processor(Processor):
             self.jp2_paths.append({'red':red, 'green':green, 'blue':blue, 'nir':nir, 'tci':tci})
 
     def stack(self):
-        paths_to_bands = [(glob.glob(folder + '/*red*S2.tif')[0],glob.glob(folder + '/*green*S2.tif')[0],
-                glob.glob(folder + '/*blue*S2.tif')[0],
-                glob.glob(folder + '/*nir*S2.tif')[0]) for folder in glob.glob(self.output_folder + '/*')]
+        paths_to_bands = (glob.glob(self.output_folder + '/*red*S2.tif')[0],glob.glob(self.output_folderr + '/*green*S2.tif')[0],
+                glob.glob(self.output_folder + '/*blue*S2.tif')[0],
+                glob.glob(self.output_folder + '/*nir*S2.tif')[0])
 
-        p = Pool(max(multiprocessing.cpu_count()-2,1))
-        p.map(stack_rgbnir, paths_to_bands)
+        stack_rgbnir(paths_to_bands)
+
+        #p = Pool(max(multiprocessing.cpu_count()-2,1))
+        #p.map(stack_rgbnir, paths_to_bands)
         #p.close()
         #p.join()
 

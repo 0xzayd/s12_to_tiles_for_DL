@@ -66,7 +66,7 @@ def main():
 
     
     
-    s2_proc = S2Processor(s2_folders[i], mosaicker.footprint,mosaicker.output_folder, mosaicker.output_npz)
+    s2_proc = S2Processor(s2_folders[i], mosaicker.footprint,mosaicker.output_folder)
     s2_proc.process()
 
 

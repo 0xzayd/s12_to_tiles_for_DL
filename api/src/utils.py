@@ -270,7 +270,8 @@ def post_proc(X):
     
     s2_meta = s2_r.meta.copy()
     if s2s1:
-        s2_meta.update({'count': 2,
+        s2_meta.update({'driver':'GTiff',
+               'count': 2,
                'dtype': 'float32'})
     else:
         s2_meta.update({'count': 4})
